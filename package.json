@@ -1,0 +1,29 @@
+{
+  "name": "app-deployment",
+  "version": "1.0.0",
+  "description": "Automated deployment CI/CD pipeline",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest --passWithNoTests",
+    "test:coverage": "jest --coverage",
+    "e2e": "node tests/e2e.js"
+  },
+  "keywords": [
+    "deployment",
+    "ci-cd",
+    "docker"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  }
+}
