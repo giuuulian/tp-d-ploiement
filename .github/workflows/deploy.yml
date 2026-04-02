@@ -189,16 +189,20 @@ jobs:
       
       - name: Health check
         run: |
+          ssh -i ~/.ssh/azure_key ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} \
+          'bash -s' << 'EOF'
+          set -e
+          
           echo "=== Running health check ==="
           max_attempts=30
           attempt=0
+          
           while [ $attempt -lt $max_attempts ]; do
-            response=$(curl -f -s -o /dev/null -w "%{http_code}" \
-              http://${{ secrets.AZURE_VM_IP }}:3000/health || echo "000")
+            response=$(curl -f -s -o /dev/null -w "%{http_code}" http://localhost:3000/health 2>/dev/null || echo "000")
             
             if [ "$response" = "200" ]; then
               echo "✓ Application is healthy (HTTP $response)"
-              echo "✓ Application URL: http://${{ secrets.AZURE_VM_IP }}:3000"
+              curl -s http://localhost:3000/health | jq .
               exit 0
             fi
             
@@ -208,20 +212,28 @@ jobs:
           done
           
           echo "ERROR: Health check failed after $max_attempts attempts"
+          docker ps
+          docker logs myapp
           exit 1
+          EOF
       
       - name: Verify endpoints
         run: |
+          ssh -i ~/.ssh/azure_key ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} \
+          'bash -s' << 'EOF'
           echo "=== Verifying API endpoints ==="
           
           # Health endpoint
-          curl -v http://${{ secrets.AZURE_VM_IP }}:3000/health
+          echo "🔍 Testing /health"
+          curl -s http://localhost:3000/health | jq .
           
           # Tasks endpoint
-          curl -v http://${{ secrets.AZURE_VM_IP }}:3000/api/tasks
+          echo "🔍 Testing /api/tasks"
+          curl -s http://localhost:3000/api/tasks | jq .
           
           echo ""
           echo "✓ All endpoints are accessible"
+          EOF
       
       - name: Cleanup SSH key
         if: always()
